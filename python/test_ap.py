@@ -1,3 +1,5 @@
+"""Test case for ap.py. Run from root directory of this repository."""
+
 import argparse
 import logging
 import unittest

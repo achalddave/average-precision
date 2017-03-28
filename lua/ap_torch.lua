@@ -7,11 +7,11 @@ local function compute_average_precision(predictions, groundtruth)
         groundtruth ((num_samples) Tensor): Contains 0/1 values.
 
     Returns:
-        mean_average_precision (num)
+        average_precision (num)
     ]]--
     predictions = predictions:float()
     groundtruth = groundtruth:byte()
-    local ap
+
     --[[
     Let P(k) be the precision at cut-off for item k. Then, we compute average
     precision for each label as

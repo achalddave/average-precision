@@ -33,8 +33,9 @@ local function compute_average_precision(predictions, groundtruth)
     local false_positives = torch.cumsum(1 - sorted_groundtruth)
     local num_positives = true_positives[-1]
 
-    local precisions = torch.cdiv(true_positives,
-                                    true_positives + false_positives)
+    local precisions = torch.cdiv(
+        true_positives,
+        torch.cmax(true_positives + false_positives, 1e-16))
     local recalls = true_positives / num_positives
 
     -- Set precisions[i] = max(precisions[j] for j >= i)

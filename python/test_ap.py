@@ -7,8 +7,7 @@ import yaml
 
 import numpy as np
 
-# from ap import compute_average_precision
-from ap_voc import calc_pr_ovr_noref as compute_average_precision
+from ap import compute_average_precision
 
 
 class ApTest(unittest.TestCase):
@@ -18,7 +17,7 @@ class ApTest(unittest.TestCase):
 def test_generator(groundtruth, predictions, expected_ap):
     def test(self):
         ap = compute_average_precision(np.asarray(groundtruth),
-                                       np.asarray(predictions))[3][0]
+                                       np.asarray(predictions))
         self.assertAlmostEqual(ap, expected_ap)
     return test
 

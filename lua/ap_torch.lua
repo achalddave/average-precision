@@ -43,7 +43,7 @@ local function compute_average_precision(predictions, groundtruth)
     -- always use a lower threshold to get the higher recall and higher
     -- precision at j.
     for i = precisions:nElement()-1, 1, -1 do
-        precisions[i] = precisions[{{i, i+1}}]:max()
+        precisions[i] = math.max(precisions[i], precisions[i+1])
     end
 
     -- Append end points of the precision recall curve.

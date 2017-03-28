@@ -35,14 +35,14 @@ def compute_average_precision(groundtruth, predictions):
     precisions = tp / np.maximum(tp + fp, np.finfo(np.float64).eps)
     recalls = tp / num_positives
 
-    # Append end points of the precision recall curve.
-    precisions = np.concatenate(([0.], precisions, [0.]))
-    recalls = np.concatenate(([0.], recalls, [1.]))
-
     # Set precisions[i] = max(precisions[j] for j >= i)
     # This is because (for j > i), recall[j] >= recall[i], so we can always use
     # a lower threshold to get the higher recall and higher precision at j.
     precisions = np.maximum.accumulate(precisions[::-1])[::-1]
+
+    # Append end points of the precision recall curve.
+    precisions = np.concatenate(([0.], precisions, [0.]))
+    recalls = np.concatenate(([0.], recalls, [1.]))
 
     # Find points where recall value changes.
     c = np.where(recalls[1:] != recalls[:-1])[0]

@@ -27,8 +27,7 @@ local function compute_average_precision(predictions, groundtruth)
     local true_positives = 0
     local average_precision = 0
 
-    local sorted_groundtruth = groundtruth:index(
-        1, sorted_indices):float()
+    local sorted_groundtruth = groundtruth:index(1, sorted_indices):float()
 
     local true_positives = torch.cumsum(sorted_groundtruth)
     local false_positives = torch.cumsum(1 - sorted_groundtruth)
@@ -37,7 +36,6 @@ local function compute_average_precision(predictions, groundtruth)
     local precisions = torch.cdiv(true_positives,
                                     true_positives + false_positives)
     local recalls = true_positives / num_positives
-
 
     -- Set precisions[i] = max(precisions[j] for j >= i)
     -- This is because (for j > i), recall[j] >= recall[i], so we can

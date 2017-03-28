@@ -23,9 +23,7 @@ local function compute_average_precision(predictions, groundtruth)
     if not torch.any(groundtruth) then
         return 0
     end
-    local label_predictions = predictions[{{}, label}]
-    local _, sorted_indices = torch.sort(
-        label_predictions, 1, true --[[descending]])
+    local _, sorted_indices = torch.sort(predictions, 1, true --[[descending]])
     local true_positives = 0
     local average_precision = 0
 

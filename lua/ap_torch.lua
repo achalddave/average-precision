@@ -1,3 +1,5 @@
+local torch = require 'torch'
+
 local function compute_average_precision(predictions, groundtruth)
     --[[
     Compute mean average prediction.
@@ -24,8 +26,6 @@ local function compute_average_precision(predictions, groundtruth)
         return 0
     end
     local _, sorted_indices = torch.sort(predictions, 1, true --[[descending]])
-    local true_positives = 0
-    local average_precision = 0
 
     local sorted_groundtruth = groundtruth:index(1, sorted_indices):float()
 
@@ -54,7 +54,7 @@ local function compute_average_precision(predictions, groundtruth)
 
     -- Find points where recall changes.
     local changes = torch.ne(recalls[{{2, -1}}], recalls[{{1, -2}}])
-    changes_plus_1 = torch.cat({torch.zeros(1):byte(), changes})
+    local changes_plus_1 = torch.cat({torch.zeros(1):byte(), changes})
     changes = torch.cat({changes, torch.zeros(1):byte()})
 
     return torch.cmul((recalls[changes_plus_1] - recalls[changes]),

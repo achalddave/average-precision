@@ -16,7 +16,7 @@
 # Currently outputs an AP of 1.0. This needs to be fixed by only looking at
 # precision/recall when the prediction score changes. This is also broken in the
 # PASCAL VOC code, as far as I know.
-- name: 'TODO_fix_all_ties'
+- name: 'all_ties_1'
   predictions: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   groundtruth: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
   expected_ap: 0.1

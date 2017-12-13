@@ -25,7 +25,9 @@ local function compute_average_precision(predictions, groundtruth)
     if not torch.any(groundtruth) then
         return 0
     end
-    local _, sorted_indices = torch.sort(predictions, 1, true --[[descending]])
+    local predictions_, sorted_indices = torch.sort(
+        predictions, 1, true --[[descending]])
+    predictions = predictions_
 
     local sorted_groundtruth = groundtruth:index(1, sorted_indices):float()
 
@@ -52,13 +54,30 @@ local function compute_average_precision(predictions, groundtruth)
     precisions = torch.cat({zero, precisions, zero}, 1)
     recalls = torch.cat({zero, recalls, one})
 
-    -- Find points where recall changes.
-    local changes = torch.ne(recalls[{{2, -1}}], recalls[{{1, -2}}])
-    local changes_plus_1 = torch.cat({torch.zeros(1):byte(), changes})
-    changes = torch.cat({changes, torch.zeros(1):byte()})
+    -- Find points where recall value changes.
+    local recall_changes = torch.ne(recalls[{{2, -1}}], recalls[{{1, -2}}])
 
-    return torch.cmul((recalls[changes_plus_1] - recalls[changes]),
-                      precisions[changes_plus_1]):sum()
+    -- Find points where prediction score changes.
+    local prediction_changes = torch.ne(
+        predictions[{{2, -1}}], predictions[{{1, -2}}])
+    -- Make prediction_changes same size as recall_changes.
+    prediction_changes = torch.cat({
+        prediction_changes, zero:byte(), zero:byte()})
+
+    -- Compute logical and
+    local changes = torch.cmin(recall_changes,  prediction_changes)
+    -- First and last element should always count as change.
+    changes = torch.cat({one:byte(), changes})
+    changes[-2] = 1
+
+    local recall_at_changes = recalls[changes]
+    local recall_at_changes_offset = recall_at_changes[{{2, -1}}]
+    recall_at_changes = recall_at_changes[{{1, -2}}]
+    local precision_at_changes_offset = precisions[changes]
+    precision_at_changes_offset = precision_at_changes_offset[{{2, -1}}]
+    return torch.cmul(
+        (recall_at_changes_offset - recall_at_changes),
+        precision_at_changes_offset):sum()
 end
 
 return { compute_average_precision = compute_average_precision }

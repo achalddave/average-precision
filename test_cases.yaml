@@ -3,6 +3,16 @@
   groundtruth: [1, 0, 1, 1, 1, 1, 0, 0, 0, 1]
   expected_ap: 0.822222222 # (1. + 5/6. + 5/6. + 5/6. + 5/6. + 6/10.) / 6
 
+- name: 'sort_stable_1'
+  predictions: [1, 1, 0, 0, 0]
+  groundtruth: [1, 0, 1, 1, 0]
+  expected_ap: 0.6
+
+- name: 'sort_stable_2'
+  predictions: [1, 1, 0, 0, 0]
+  groundtruth: [1, 0, 1, 0, 1]
+  expected_ap: 0.6
+
 - name: 'simple_2'
   predictions: [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
   groundtruth: [1, 0, 0, 0, 1, 1, 0, 0, 0, 1]

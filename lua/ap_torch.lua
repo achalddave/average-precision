@@ -40,14 +40,6 @@ local function compute_average_precision(predictions, groundtruth)
         torch.cmax(true_positives + false_positives, 1e-16))
     local recalls = true_positives / num_positives
 
-    -- Set precisions[i] = max(precisions[j] for j >= i)
-    -- This is because (for j > i), recall[j] >= recall[i], so we can
-    -- always use a lower threshold to get the higher recall and higher
-    -- precision at j.
-    for i = precisions:nElement()-1, 1, -1 do
-        precisions[i] = math.max(precisions[i], precisions[i+1])
-    end
-
     -- Append end points of the precision recall curve.
     local zero = torch.zeros(1):float()
     local one = torch.ones(1):float()
@@ -68,6 +60,17 @@ local function compute_average_precision(predictions, groundtruth)
     recall_at_changes = recall_at_changes[{{1, -2}}]
     local precision_at_changes_offset = precisions[changes]
     precision_at_changes_offset = precision_at_changes_offset[{{2, -1}}]
+
+    -- Set precisions[i] = max(precisions[j] for j >= i)
+    -- This is because (for j > i), recall[j] >= recall[i], so we can
+    -- always use a lower threshold to get the higher recall and higher
+    -- precision at j.
+    for i = precision_at_changes_offset:nElement()-1, 1, -1 do
+        precision_at_changes_offset[i] = math.max(
+            precision_at_changes_offset[i],
+            precision_at_changes_offset[i+1])
+    end
+
     return torch.cmul(
         (recall_at_changes_offset - recall_at_changes),
         precision_at_changes_offset):sum()

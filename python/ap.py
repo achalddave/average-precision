@@ -36,8 +36,8 @@ def compute_average_precision(groundtruth, predictions):
     recalls = tp / num_positives
 
     # Append end points of the precision recall curve.
-    precisions = np.concatenate(([0.], precisions, [0.]))
-    recalls = np.concatenate(([0.], recalls, [1.]))
+    precisions = np.concatenate(([0.], precisions))
+    recalls = np.concatenate(([0.], recalls))
 
     # Find points where prediction score changes.
     prediction_changes = set(

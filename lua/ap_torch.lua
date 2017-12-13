@@ -43,17 +43,14 @@ local function compute_average_precision(predictions, groundtruth)
     -- Append end points of the precision recall curve.
     local zero = torch.zeros(1):float()
     local one = torch.ones(1):float()
-    precisions = torch.cat({zero, precisions, zero}, 1)
-    recalls = torch.cat({zero, recalls, one})
+    precisions = torch.cat({zero, precisions}, 1)
+    recalls = torch.cat({zero, recalls})
 
     -- Find points where prediction score changes.
     local changes = torch.ne(predictions[{{2, -1}}], predictions[{{1, -2}}])
 
     -- First and last element should always count as change.
     changes = torch.cat({one:byte(), changes, one:byte()})
-    -- Make changes same size as recall/precision. TODO(achald): Explain why
-    -- this line is necessary.
-    changes = torch.cat({changes, zero:byte()})
 
     local recall_at_changes = recalls[changes]
     local recall_at_changes_offset = recall_at_changes[{{2, -1}}]

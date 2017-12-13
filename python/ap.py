@@ -44,9 +44,6 @@ def compute_average_precision(groundtruth, predictions):
     precisions = np.concatenate(([0.], precisions, [0.]))
     recalls = np.concatenate(([0.], recalls, [1.]))
 
-    # Find points where recall value changes.
-    recall_changes = set(np.where(recalls[1:] != recalls[:-1])[0] + 1)
-
     # Find points where prediction score changes.
     prediction_changes = set(
         np.where(predictions[1:] != predictions[:-1])[0] + 1)
@@ -54,7 +51,7 @@ def compute_average_precision(groundtruth, predictions):
     num_examples = predictions.shape[0]
 
     # Recall and scores always "change" at the first and last prediction.
-    c = recall_changes & prediction_changes | set([0, num_examples])
+    c = prediction_changes | set([0, num_examples])
     c = np.array(sorted(list(c)), dtype=np.int)
 
     ap = np.sum((recalls[c[1:]] - recalls[c[:-1]]) * precisions[c[1:]])

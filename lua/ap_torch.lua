@@ -54,21 +54,14 @@ local function compute_average_precision(predictions, groundtruth)
     precisions = torch.cat({zero, precisions, zero}, 1)
     recalls = torch.cat({zero, recalls, one})
 
-    -- Find points where recall value changes.
-    local recall_changes = torch.ne(recalls[{{2, -1}}], recalls[{{1, -2}}])
-
     -- Find points where prediction score changes.
-    local prediction_changes = torch.ne(
-        predictions[{{2, -1}}], predictions[{{1, -2}}])
-    -- Make prediction_changes same size as recall_changes.
-    prediction_changes = torch.cat({
-        prediction_changes, zero:byte(), zero:byte()})
+    local changes = torch.ne(predictions[{{2, -1}}], predictions[{{1, -2}}])
 
-    -- Compute logical and
-    local changes = torch.cmin(recall_changes,  prediction_changes)
     -- First and last element should always count as change.
-    changes = torch.cat({one:byte(), changes})
-    changes[-2] = 1
+    changes = torch.cat({one:byte(), changes, one:byte()})
+    -- Make changes same size as recall/precision. TODO(achald): Explain why
+    -- this line is necessary.
+    changes = torch.cat({changes, zero:byte()})
 
     local recall_at_changes = recalls[changes]
     local recall_at_changes_offset = recall_at_changes[{{2, -1}}]

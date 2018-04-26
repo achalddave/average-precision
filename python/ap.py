@@ -2,6 +2,7 @@ from __future__ import division
 
 import numpy as np
 
+
 def compute_average_precision(groundtruth, predictions):
     """
     Computes average precision for a binary problem. This is based off of the
@@ -16,8 +17,14 @@ def compute_average_precision(groundtruth, predictions):
         Average precision.
 
     """
-    predictions = np.asarray(predictions)
-    groundtruth = np.asarray(groundtruth, dtype=float)
+    predictions = np.asarray(predictions).squeeze()
+    groundtruth = np.asarray(groundtruth, dtype=float).squeeze()
+    if predictions.ndim != 1:
+        raise ValueError('Predictions vector should be 1 dimensional.'
+                         'For multiple labels, use `compute_multiple_aps`.')
+    if groundtruth.ndim != 1:
+        raise ValueError('Groundtruth vector should be 1 dimensional.'
+                         'For multiple labels, use `compute_multiple_aps`.')
 
     sorted_indices = np.argsort(predictions)[::-1]
     predictions = predictions[sorted_indices]
@@ -59,3 +66,36 @@ def compute_average_precision(groundtruth, predictions):
     ap = np.sum((recalls[c[1:]] - recalls[c[:-1]]) * precisions)
 
     return ap
+
+
+def compute_multiple_aps(groundtruth, predictions):
+    """Convenience function to compute APs for multiple labels.
+
+    Args:
+        groundtruth (np.array): Shape (num_samples, num_labels)
+        predictions (np.array): Shape (num_samples, num_labels)
+
+    Returns:
+        aps_per_label (np.array, shape (num_labels,)): Contains APs for each
+            label. NOTE: If a label does not have positive samples in the
+            groundtruth, the AP is set to -1.
+    """
+    predictions = np.asarray(predictions)
+    groundtruth = np.asarray(groundtruth)
+    if predictions.ndim != 2:
+        raise ValueError('Predictions should be 2-dimensional,'
+                         ' but has shape %s' % (predictions.shape, ))
+    if groundtruth.ndim != 2:
+        raise ValueError('Groundtruth should be 2-dimensional,'
+                         ' but has shape %s' % (predictions.shape, ))
+
+    num_labels = groundtruth.shape[1]
+    aps = np.zeros(groundtruth.shape[1])
+    for i in range(num_labels):
+        if not groundtruth[:, i].any():
+            print('WARNING: No groundtruth for label: %s' % i)
+            aps[i] = -1
+        else:
+            aps[i] = compute_average_precision(groundtruth[:, i],
+                                               predictions[:, i])
+    return aps

@@ -7,10 +7,14 @@ import yaml
 
 import numpy as np
 
-from ap import compute_average_precision
+from ap import compute_average_precision, compute_multiple_aps
 
 
 class ApTest(unittest.TestCase):
+    pass
+
+
+class MultipleApTest(unittest.TestCase):
     pass
 
 
@@ -20,6 +24,21 @@ def test_generator(groundtruth, predictions, expected_ap):
                                        np.asarray(predictions))
         self.assertAlmostEqual(ap, expected_ap)
     return test
+
+
+def multiple_ap_test_generator(groundtruth, predictions, expected_aps):
+    def test(self):
+        aps = compute_multiple_aps(np.asarray(groundtruth),
+                                   np.asarray(predictions))
+        for i, (ap, expected_ap) in enumerate(zip(aps, expected_aps)):
+            self.assertAlmostEqual(
+                ap,
+                expected_ap,
+                msg='Incorrect AP for label %s. Expected: %s, Saw: %s' %
+                (i, expected_ap, ap))
+
+    return test
+
 
 if __name__ == "__main__":
     # Use first line of file docstring as description if a file docstring
@@ -38,4 +57,16 @@ if __name__ == "__main__":
                                  test['expected_ap'])
         setattr(ApTest, 'test_' + test['name'], test_fn)
 
+    num_labels = 3
+    for test in tests:
+        num_samples = len(test['groundtruth'])
+        predictions = np.zeros((num_samples, num_labels))
+        groundtruth = np.zeros((num_samples, num_labels))
+        for i in range(num_labels):
+            predictions[:, i] = test['predictions']
+            groundtruth[:, i] = test['groundtruth']
+        expected_aps = [test['expected_ap']] * num_samples
+        setattr(MultipleApTest, 'test_multi_' + test['name'],
+                multiple_ap_test_generator(groundtruth, predictions,
+                                           expected_aps))
     unittest.main()

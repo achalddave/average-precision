@@ -1,30 +1,79 @@
+# AP is computed by first computing the precision at each unique score. Then,
+# we ensure that precision is monotonically decreasing as recall increases (by
+# setting precision[i] = max(precision[i], precision[i+1])).  Finally, we sum
+# the areas between successive unique recalls, which is computed by multiplying
+# the difference between the current and previous unique recall with the
+# precision at the current recall.
+
 - name: 'simple_1'
   predictions: [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
   groundtruth: [1, 0, 1, 1, 1, 1, 0, 0, 0, 1]
-  expected_ap: 0.822222222 # (1. + 5/6. + 5/6. + 5/6. + 5/6. + 6/10.) / 6
+  # Steps to compute:
+  # score thresholds: [ 10,   9,    8,    7,    6,    5,   4,   3,    2,    1]
+  # precisions:       [  1, 1/2,  2/3,  3/4,  4/5,  5/6, 5/7, 5/8,  5/9, 6/10]
+  # mon. dec. precs:  [  1, 5/6,  5/6,  5/6,  5/6,  5/6, 5/7, 5/8, 6/10, 6/10]
+  # recalls:          [1/6, 1/6,  2/6,  3/6,  4/6,  5/6, 5/6, 5/6,  5/6,    1]
+  # recall_changes:   [1/6,   0,  1/6,  1/6,  1/6,  1/6,   0,   0,    0,  1/6]
+  # expected ap:   sum(1/6,      5/36, 5/36, 5/36, 5/36,                 1/10])
+  expected_ap: 0.822222222
 
 - name: 'sort_stable_1'
   predictions: [1, 1, 0, 0, 0]
   groundtruth: [1, 0, 1, 1, 0]
+  # Steps to compute:
+  # score thresholds: [1  , 0  ]
+  # precisions:       [1/2, 3/5]
+  # mon. dec. precs:  [3/5, 3/5]
+  # recalls:          [1/3, 1  ]
+  # recall_changes:   [1/3, 2/3]
+  # expected ap:   sum(1/5, 2/5)
   expected_ap: 0.6
 
 - name: 'sort_stable_2'
   predictions: [1, 1, 0, 0, 0]
   groundtruth: [1, 0, 1, 0, 1]
+  # Steps to compute:
+  # score thresholds: [1  , 0  ]
+  # precisions:       [1/2, 3/5]
+  # mon. dec. precs:  [3/5, 3/5]
+  # recalls:          [1/3, 1  ]
+  # recall_changes:   [1/3, 2/3]
+  # expected ap:   sum(1/5, 2/5)
   expected_ap: 0.6
 
 - name: 'simple_2'
   predictions: [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
   groundtruth: [1, 0, 0, 0, 1, 1, 0, 0, 0, 1]
-  expected_ap: 0.6 # (1. + 3/6. + 3/6. + 4/10.) / 4
+  # Steps to compute:
+  # score thresholds: [ 10,   9,   8,   7,    6,   5,   4,    3,    2,    1]
+  # precisions:       [  1, 1/2, 1/3, 1/4,  2/5, 3/6, 3/7,  3/8, 3/9 , 4/10]
+  # mon. dec. precs:  [  1, 1/2, 3/6, 3/6,  3/6, 3/6, 3/7, 4/10, 4/10, 4/10]
+  # recalls:          [1/4, 1/4, 1/4, 1/4,  2/4, 3/4, 3/4,  3/4,  3/4,    1]
+  # recall_changes:   [1/4,   0,   0,   0,  1/4, 1/4,   0,    0,    0,  1/4]
+  # expected ap:   sum(1/4,                 1/8, 1/8,                  1/10)
+  expected_ap: 0.6
 
 - name: 'all_ties'
   predictions: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   groundtruth: [1, 0, 1, 0, 1, 1, 0, 1, 0, 0]
+  # Steps to compute:
+  # score thresholds: [ 0   ]
+  # precisions:       [ 5/10]
+  # mon. dec. precs:  [ 5/10]
+  # recalls:          [    1]
+  # recall_changes:   [    1]
+  # expected ap:   sum(1 * 5/10)
   expected_ap: 0.5
 
 # This is broken in the PASCAL VOC code, as far as I know.
 - name: 'all_ties_1'
   predictions: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   groundtruth: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+  # Steps to compute:
+  # score thresholds: [ 0   ]
+  # precisions:       [ 1/10]
+  # mon. dec. precs:  [ 1/10]
+  # recalls:          [    1]
+  # recall_changes:   [    1]
+  # expected ap:   sum(1 * 1/10)
   expected_ap: 0.1

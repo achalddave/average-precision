@@ -3,7 +3,7 @@ from __future__ import division
 import numpy as np
 
 
-def compute_average_precision(groundtruth, predictions):
+def compute_average_precision(groundtruth, predictions, false_negatives=0):
     """
     Computes average precision for a binary problem. This is based off of the
     PASCAL VOC implementation.
@@ -12,6 +12,11 @@ def compute_average_precision(groundtruth, predictions):
         groundtruth (array-like): Binary vector indicating whether each sample
             is positive or negative.
         predictions (array-like): Contains scores for each sample.
+        false_negatives (int or None): In some tasks, such as object
+            detection, not all groundtruth will have a corresponding prediction
+            (i.e., it is not retrieved at _any_ score threshold). For these
+            cases, use false_negatives to indicate the number of groundtruth
+            instances that were not retrieved.
 
     Returns:
         Average precision.
@@ -37,7 +42,7 @@ def compute_average_precision(groundtruth, predictions):
     tp = np.cumsum(groundtruth)      # tp[i] = # of positive examples up to i
     fp = np.cumsum(false_positives)  # fp[i] = # of false positives up to i
 
-    num_positives = tp[-1]
+    num_positives = tp[-1] + false_negatives
 
     precisions = tp / np.maximum(tp + fp, np.finfo(np.float64).eps)
     recalls = tp / num_positives
@@ -68,12 +73,17 @@ def compute_average_precision(groundtruth, predictions):
     return ap
 
 
-def compute_multiple_aps(groundtruth, predictions):
+def compute_multiple_aps(groundtruth, predictions, false_negatives=None):
     """Convenience function to compute APs for multiple labels.
 
     Args:
         groundtruth (np.array): Shape (num_samples, num_labels)
         predictions (np.array): Shape (num_samples, num_labels)
+        false_negatives (list or None): In some tasks, such as object
+            detection, not all groundtruth will have a corresponding prediction
+            (i.e., it is not retrieved at _any_ score threshold). For these
+            cases, use false_negatives to indicate the number of groundtruth
+            instances which were not retrieved for each category.
 
     Returns:
         aps_per_label (np.array, shape (num_labels,)): Contains APs for each
@@ -91,11 +101,14 @@ def compute_multiple_aps(groundtruth, predictions):
 
     num_labels = groundtruth.shape[1]
     aps = np.zeros(groundtruth.shape[1])
+    if false_negatives is None:
+        false_negatives = [0] * num_labels
     for i in range(num_labels):
         if not groundtruth[:, i].any():
             print('WARNING: No groundtruth for label: %s' % i)
             aps[i] = -1
         else:
             aps[i] = compute_average_precision(groundtruth[:, i],
-                                               predictions[:, i])
+                                               predictions[:, i],
+                                               false_negatives[i])
     return aps

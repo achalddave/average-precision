@@ -1,18 +1,25 @@
 local torch = require 'torch'
 
-local function compute_average_precision(predictions, groundtruth)
+local function compute_average_precision(
+        predictions, groundtruth, false_negatives)
     --[[
     Compute mean average prediction.
 
     Args:
         predictions ((num_samples) Tensor)
         groundtruth ((num_samples) Tensor): Contains 0/1 values.
+        false_negatives (int or nil): In some tasks, such as object
+            detection, not all groundtruth will have a corresponding prediction
+            (i.e., it is not retrieved at _any_ score threshold). For these
+            cases, use false_negatives to indicate the number of groundtruth
+            instances that were not retrieved.
 
     Returns:
         average_precision (num)
     ]]--
     predictions = predictions:float()
     groundtruth = groundtruth:byte()
+    false_negatives = false_negatives ~= nil and false_negatives or 0
 
     --[[
     Let P(k) be the precision at cut-off for item k. Then, we compute average
@@ -33,7 +40,7 @@ local function compute_average_precision(predictions, groundtruth)
 
     local true_positives = torch.cumsum(sorted_groundtruth)
     local false_positives = torch.cumsum(1 - sorted_groundtruth)
-    local num_positives = true_positives[-1]
+    local num_positives = true_positives[-1] + false_negatives
 
     local precisions = torch.cdiv(
         true_positives,

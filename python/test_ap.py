@@ -18,18 +18,23 @@ class MultipleApTest(unittest.TestCase):
     pass
 
 
-def test_generator(groundtruth, predictions, expected_ap):
+def test_generator(groundtruth, predictions, expected_ap, false_negatives):
     def test(self):
         ap = compute_average_precision(np.asarray(groundtruth),
-                                       np.asarray(predictions))
+                                       np.asarray(predictions),
+                                       false_negatives)
         self.assertAlmostEqual(ap, expected_ap)
     return test
 
 
-def multiple_ap_test_generator(groundtruth, predictions, expected_aps):
+def multiple_ap_test_generator(groundtruth,
+                               predictions,
+                               expected_aps,
+                               false_negatives=None):
     def test(self):
         aps = compute_multiple_aps(np.asarray(groundtruth),
-                                   np.asarray(predictions))
+                                   np.asarray(predictions),
+                                   false_negatives)
         for i, (ap, expected_ap) in enumerate(zip(aps, expected_aps)):
             self.assertAlmostEqual(
                 ap,
@@ -54,7 +59,8 @@ if __name__ == "__main__":
         tests = yaml.load(f.read())
     for test in tests:
         test_fn = test_generator(test['groundtruth'], test['predictions'],
-                                 test['expected_ap'])
+                                 test['expected_ap'],
+                                 test.get('false_negatives', 0))
         setattr(ApTest, 'test_' + test['name'], test_fn)
 
     num_labels = 3
@@ -62,11 +68,14 @@ if __name__ == "__main__":
         num_samples = len(test['groundtruth'])
         predictions = np.zeros((num_samples, num_labels))
         groundtruth = np.zeros((num_samples, num_labels))
+        false_negatives = [0 for _ in range(num_labels)]
         for i in range(num_labels):
             predictions[:, i] = test['predictions']
             groundtruth[:, i] = test['groundtruth']
+            if 'false_negatives' in test:
+                false_negatives[i] = test['false_negatives']
         expected_aps = [test['expected_ap']] * num_samples
         setattr(MultipleApTest, 'test_multi_' + test['name'],
                 multiple_ap_test_generator(groundtruth, predictions,
-                                           expected_aps))
+                                           expected_aps, false_negatives))
     unittest.main()

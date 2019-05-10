@@ -22,7 +22,8 @@ function ap_test.testAll()
         print('Testing ', test_case.name)
         ap_tester:assertalmosteq(
             compute_ap(torch.FloatTensor(test_case.predictions),
-                       torch.FloatTensor(test_case.groundtruth)),
+                       torch.FloatTensor(test_case.groundtruth),
+                       test_case.false_negatives),
             test_case.expected_ap,
             1e-6 --[[tolerance]])
     end

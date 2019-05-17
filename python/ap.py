@@ -24,12 +24,20 @@ def compute_average_precision(groundtruth, predictions, false_negatives=0):
     """
     predictions = np.asarray(predictions).squeeze()
     groundtruth = np.asarray(groundtruth, dtype=float).squeeze()
+
+    if predictions.ndim == 0:
+        predictions = predictions.view(1, -1)
+    if groundtruth.ndim == 0:
+        groundtruth = groundtruth.view(1, -1)
+
     if predictions.ndim != 1:
-        raise ValueError('Predictions vector should be 1 dimensional.'
-                         'For multiple labels, use `compute_multiple_aps`.')
+        raise ValueError(f'Predictions vector should be 1 dimensional, not '
+                         f'{predictions.ndim}. (For multiple labels, use '
+                         f'`compute_multiple_aps`.)')
     if groundtruth.ndim != 1:
-        raise ValueError('Groundtruth vector should be 1 dimensional.'
-                         'For multiple labels, use `compute_multiple_aps`.')
+        raise ValueError(f'Groundtruth vector should be 1 dimensional, not '
+                         f'{groundtruth.ndim}. (For multiple labels, use '
+                         f'`compute_multiple_aps`.)')
 
     sorted_indices = np.argsort(predictions)[::-1]
     predictions = predictions[sorted_indices]

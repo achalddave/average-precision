@@ -26,9 +26,10 @@ def compute_average_precision(groundtruth, predictions, false_negatives=0):
     groundtruth = np.asarray(groundtruth, dtype=float).squeeze()
 
     if predictions.ndim == 0:
-        predictions = predictions.view(1, -1)
+        predictions = predictions.reshape(-1)
+
     if groundtruth.ndim == 0:
-        groundtruth = groundtruth.view(1, -1)
+        groundtruth = groundtruth.reshape(-1)
 
     if predictions.ndim != 1:
         raise ValueError(f'Predictions vector should be 1 dimensional, not '
